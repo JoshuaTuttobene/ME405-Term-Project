@@ -88,13 +88,12 @@ if __name__ == "__main__":
     kd = 200#float(input("Enter a Kd value:"))
     sp = 144#float(input("Enter a setpoint:"))   # input for setpoint for run
     
-    PID = ClosedLoop_PID(kp,ki,kd,sp,5/1000)
+    PID = ClosedLoop_PID(kp,ki,kd,sp,10/1000)
     encoder.zero()
     while True:
         pwm = PID.run(encoder.read())      # set return from controller as pwm for motor
-        print(pwm)
         motor.set_duty_cycle(pwm)         # set new pwm
-        utime.sleep_ms(5)
+        utime.sleep_ms(10)
         print(encoder.read())
         if encoder.read() == 144:
             motor.set_duty_cycle(0)

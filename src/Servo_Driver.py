@@ -14,7 +14,7 @@ class ServoDriver:
     """!
     The ServoDriver class implements a servo driver for the Nerf Gun Term Project
     """
-    def __init__ (self, pwm, min_period, max_period, angle_range):
+    def __init__ (self, pwm, min_pw, max_pw, angle_range):
         """! 
         Creates a servo driver by initializing GPIO
         pins and ensuring the servo parameters specifications are met. 

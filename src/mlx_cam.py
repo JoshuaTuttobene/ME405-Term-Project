@@ -24,6 +24,8 @@ from machine import Pin, I2C
 from mlx90640 import MLX90640
 from mlx90640.calibration import NUM_ROWS, NUM_COLS, IMAGE_SIZE, TEMP_K
 from mlx90640.image import ChessPattern, InterleavedPattern
+from array import array
+import gc
 
 
 class MLX_Cam:
@@ -32,7 +34,7 @@ class MLX_Cam:
              make it easier to grab and use an image.
     """
 
-    def __init__(self, i2c, address=0x33, pattern=ChessPattern,
+    def __init__(self, i2c=I2C(1), address=0x33, pattern=ChessPattern,
                  width=NUM_COLS, height=NUM_ROWS):
         """!
         @brief   Set up an MLX90640 camera.
@@ -64,75 +66,75 @@ class MLX_Cam:
         self._image = self._camera.image
 
 
-    def ascii_image(self, array, pixel="██", textcolor="0;180;0"):
-        """!
-        @brief   Show low-resolution camera data as shaded pixels on a text
-                 screen.
-        @details The data is printed as a set of characters in columns for the
-                 number of rows in the camera's image size. This function is
-                 intended for testing an MLX90640 thermal infrared sensor.
-
-                 A pair of extended ACSII filled rectangles is used by default
-                 to show each pixel so that the aspect ratio of the display on
-                 screens isn't too smushed. Each pixel is colored using ANSI
-                 terminal escape codes which work in only some programs such as
-                 PuTTY.  If shown in simpler terminal programs such as the one
-                 used in Thonny, the display just shows a bunch of pixel
-                 symbols with no difference in shading (boring).
-
-                 A simple auto-brightness scaling is done, setting the lowest
-                 brightness of a filled block to 0 and the highest to 255. If
-                 there are bad pixels, this can reduce contrast in the rest of
-                 the image.
-
-                 After the printing is done, character color is reset to a
-                 default of medium-brightness green, or something else if
-                 chosen.
-        @param   array An array of (self._width * self._height) pixel values
-        @param   pixel Text which is shown for each pixel, default being a pair
-                 of extended-ASCII blocks (code 219)
-        @param   textcolor The color to which printed text is reset when the
-                 image has been finished, as a string "<r>;<g>;<b>" with each
-                 letter representing the intensity of red, green, and blue from
-                 0 to 255
-        """
-        minny = min(array)
-        scale = 255.0 / (max(array) - minny)
-        for row in range(self._height):
-            for col in range(self._width):
-                pix = int((array[row * self._width + (self._width - col - 1)]
-                           - minny) * scale)
-                print(f"\033[38;2;{pix};{pix};{pix}m{pixel}", end='')
-            print(f"\033[38;2;{textcolor}m")
-
-
-    ## A "standard" set of characters of different densities to make ASCII art
-    asc = " -.:=+*#%@"
-
-
-    def ascii_art(self, array):
-        """!
-        @brief   Show a data array from the IR image as ASCII art.
-        @details Each character is repeated twice so the image isn't squished
-                 laterally. A code of "><" indicates an error, probably caused
-                 by a bad pixel in the camera. 
-        @param   array The array to be shown, probably @c image.v_ir
-        """
-        scale = 10 / (max(array) - min(array))
-        offset = -min(array)
-        for row in range(self._height):
-            line = ""
-            for col in range(self._width):
-                pix = int((array[row * self._width + (self._width - col - 1)]
-                           + offset) * scale)
-                try:
-                    the_char = MLX_Cam.asc[pix]
-                    print(f"{the_char}{the_char}", end='')
-                except IndexError:
-                    print("><", end='')
-            print('')
-        return
-
+#     def ascii_image(self, array, pixel="██", textcolor="0;180;0"):
+#         """!
+#         @brief   Show low-resolution camera data as shaded pixels on a text
+#                  screen.
+#         @details The data is printed as a set of characters in columns for the
+#                  number of rows in the camera's image size. This function is
+#                  intended for testing an MLX90640 thermal infrared sensor.
+# 
+#                  A pair of extended ACSII filled rectangles is used by default
+#                  to show each pixel so that the aspect ratio of the display on
+#                  screens isn't too smushed. Each pixel is colored using ANSI
+#                  terminal escape codes which work in only some programs such as
+#                  PuTTY.  If shown in simpler terminal programs such as the one
+#                  used in Thonny, the display just shows a bunch of pixel
+#                  symbols with no difference in shading (boring).
+# 
+#                  A simple auto-brightness scaling is done, setting the lowest
+#                  brightness of a filled block to 0 and the highest to 255. If
+#                  there are bad pixels, this can reduce contrast in the rest of
+#                  the image.
+# 
+#                  After the printing is done, character color is reset to a
+#                  default of medium-brightness green, or something else if
+#                  chosen.
+#         @param   array An array of (self._width * self._height) pixel values
+#         @param   pixel Text which is shown for each pixel, default being a pair
+#                  of extended-ASCII blocks (code 219)
+#         @param   textcolor The color to which printed text is reset when the
+#                  image has been finished, as a string "<r>;<g>;<b>" with each
+#                  letter representing the intensity of red, green, and blue from
+#                  0 to 255
+#         """
+#         minny = min(array)
+#         scale = 255.0 / (max(array) - minny)
+#         for row in range(self._height):
+#             for col in range(self._width):
+#                 pix = int((array[row * self._width + (self._width - col - 1)]
+#                            - minny) * scale)
+#                 print(f"\033[38;2;{pix};{pix};{pix}m{pixel}", end='')
+#             print(f"\033[38;2;{textcolor}m")
+# 
+# 
+#     ## A "standard" set of characters of different densities to make ASCII art
+#     asc = " -.:=+*#%@"
+# 
+# 
+#     def ascii_art(self, array):
+#         """!
+#         @brief   Show a data array from the IR image as ASCII art.
+#         @details Each character is repeated twice so the image isn't squished
+#                  laterally. A code of "><" indicates an error, probably caused
+#                  by a bad pixel in the camera. 
+#         @param   array The array to be shown, probably @c image.v_ir
+#         """
+#         scale = 10 / (max(array) - min(array))
+#         offset = -min(array)
+#         for row in range(self._height):
+#             line = ""
+#             for col in range(self._width):
+#                 pix = int((array[row * self._width + (self._width - col - 1)]
+#                            + offset) * scale)
+#                 try:
+#                     the_char = MLX_Cam.asc[pix]
+#                     print(f"{the_char}{the_char}", end='')
+#                 except IndexError:
+#                     print("><", end='')
+#             print('')
+#         return
+# 
 
     def get_csv(self, array, limits=None):
         """!
@@ -181,6 +183,38 @@ class MLX_Cam:
             image = self._camera.process_image(subpage, state)
 
         return image
+    
+#    def get_ind(self,image):
+#         
+#         # Initialize variables
+#         max_value = 0
+#         max_index = 0
+# 
+#         # Iterate over the camera data
+#         for line_index, line in enumerate(camera.get_csv(image.v_ir, limits=(0, 99))):
+#             line_sum = 0
+#             for value in line:
+#                 line_sum += value
+#             if line_sum > max_value:
+#                 max_value = line_sum
+#                 max_index = line_index
+# 
+#             # Free memory by deleting line after processing
+#             del line
+# 
+#         # Return the result
+#         return max_index, max_value
+
+#         max_value = 0  
+#         max_index = None
+# 
+#         sums = [0]*32
+#         for line in enumerate(camera.get_csv(image.v_ir, limits=(0, 99))):
+#             for column,value in enumerate(line):
+#                 sums[column] += value
+#         max_value = max(sums)
+#         max_index = sums.index(max_value)
+#         return max_index, max_value
 
 
 # The test code sets up the sensor, then grabs and shows an image in a terminal
