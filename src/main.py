@@ -1,4 +1,4 @@
-
+# 
 import utime as time
 from machine import Pin, I2C
 import mlx_cam as MLX
@@ -10,10 +10,10 @@ import CL_PID as PID
 import Servo_Driver as SD
 from array import array
 import gc
-
+# 
 fire_time = time.ticks_ms()
-# The following import is only used to check if we have an STM32 board such
-    # as a Pyboard or Nucleo; if not, use a different library
+# # The following import is only used to check if we have an STM32 board such
+#     # as a Pyboard or Nucleo; if not, use a different library
 gc.collect()
 
 i2c_bus = I2C(1)
@@ -32,7 +32,7 @@ camera = MLX.MLX_Cam()
 image = camera.get_image()
 max_value = 0
 max_index = 0
-
+gc.collect()
 #Iterate over the camera data
 sums = [0]*32
 for line in camera.get_csv(image.v_ir, limits=(0, 99)):
@@ -41,7 +41,7 @@ for line in camera.get_csv(image.v_ir, limits=(0, 99)):
 max_value = max(sums)
 max_index = sums.index(max_value)
 
-
+del camera, image
 
 # Get and image and see how long it takes to grab that image
 print("Click.", end='')
@@ -52,20 +52,30 @@ print(max_value,max_index)
 
 print(f" {time.ticks_diff(time.ticks_ms(), begintime)} ms")
 
+# for center of table
+# cam_angle = ((max_index-16)/32)*((55*pi)/180)
+# x = 6*tan(cam_angle)
+# beta = atan(x/((108+89.5)/12))
+# cal_offset = 8
+# desired_pos = (144 + (beta/((1.25*pi)/180)))
+# print('this is old', desired_pos, (desired_pos*1.25)-180)
+# desired_pos += cal_offset
+
+# calibrated from edge
 cam_angle = ((max_index-16)/32)*((55*pi)/180)
-x = 6*tan(cam_angle)
-beta = atan(x/((108+80.5)/12))
-cal_offset = 8
+x = 108*tan(cam_angle) + 7.85
+beta = atan(x/197.5)
+cal_offset = 2.5 # 2.5 to 3 off of center based on aiming for center
 desired_pos = (144 + (beta/((1.25*pi)/180)))
+
 print('this is old', desired_pos, (desired_pos*1.25)-180)
 desired_pos += cal_offset
 
 if desired_pos - (desired_pos//1) < 0.5:
     desired_pos = desired_pos//1
-elif desired_pos - (desired_pos//1) > 0.5:
+elif desired_pos - (desired_pos//1) >= 0.5:
     desired_pos = (desired_pos//1) + 1
 
-    
 
 # Servo Init
 servo_pin = pyb.Pin.cpu.B6
@@ -97,9 +107,9 @@ tim8 = pyb.Timer(8, prescaler = 0, period = 2**16-1)
 encoder = ER.Encoder(pin_A, pin_B, tim8)
 
 # Controller init
-kp = 25      # float(input("Enter a Kp value:"))  # input for Kp
+kp = 15      # float(input("Enter a Kp value:"))  # input for Kp
 ki = 0       # float(input("Enter a Ki value:"))  
-kd = 100     # float(input("Enter a Kd value:"))
+kd = 15     # float(input("Enter a Kd value:"))
 
 
 pid = PID.ClosedLoop_PID(kp,ki,kd,desired_pos,10/1000)
@@ -114,14 +124,15 @@ while True:
         print('done')
         break
 
-
+print(desired_pos)
 # Run Servo
 servo.set_angle(15)
 time.sleep_ms(100)
-servo.set_angle(34)
+servo.set_angle(30)
 
 
 print('total run time', time.ticks_ms()-fire_time)
+print(encoder.read())
 
 time.sleep(3)
 servo.set_angle(15)
@@ -131,7 +142,6 @@ while True:
     motor.set_duty_cycle(pwm)          # set new pwm
     time.sleep_ms(10)
     if encoder.read() == 0:
-        time.sleep_ms(50)
         motor.set_duty_cycle(0)
         print('done')
         break
@@ -139,7 +149,38 @@ motor.disable()
 
 print('test')
 #print(array_store)
+print(encoder.read())
 print ("Done.")
+# 
+# ## @endcond End the block which Doxygen should ignore
 
-## @endcond End the block which Doxygen should ignore
-
+# Camera code delete everything after here
+# while True:
+#     try:
+#         # Get and image and see how long it takes to grab that image
+#         print("Click.", end='')
+#         begintime = time.ticks_ms()
+#         image = camera.get_image()
+#         print(f" {time.ticks_diff(time.ticks_ms(), begintime)} ms")
+# 
+#         # Can show image.v_ir, image.alpha, or image.buf; image.v_ir best?
+#         # Display pixellated grayscale or numbers in CSV format; the CSV
+#         # could also be written to a file. Spreadsheets, Matlab(tm), or
+#         # CPython can read CSV and make a decent false-color heat plot.
+#         show_image = True
+#         show_csv = False
+#         if show_image:
+#             camera.ascii_image(image.buf)
+#         elif show_csv:
+#             for line in camera.get_csv(image.v_ir, limits=(0, 99)):
+#                 print(line)
+#         else:
+#             camera.ascii_art(image.v_ir)
+#         time.sleep_ms(10000)
+# 
+#     except KeyboardInterrupt:
+#         break
+# 
+# print ("Done.")
+# 
+# ## @endcond End the block which Doxygen should ignore

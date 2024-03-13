@@ -22,7 +22,7 @@ class ClosedLoop_PID:
         self.setpoint = setpoint
         self.delta_t = delta_t
         self.integral = 0
-        self.prev_error = 0
+        self.prev_error = setpoint
     
     def run(self,position):
         """! 
@@ -83,21 +83,26 @@ if __name__ == "__main__":
     tim8 = pyb.Timer(8, prescaler = 0, period = 2**16-1)
     encoder = ER.Encoder(pin_A, pin_B, tim8)
 
-    kp = 100#float(input("Enter a Kp value:"))  # input for Kp
+    kp = 15#float(input("Enter a Kp value:"))  # input for Kp
     ki = 0#float(input("Enter a Ki value:"))  
-    kd = 200#float(input("Enter a Kd value:"))
+    kd = 15#float(input("Enter a Kd value:"))
     sp = 144#float(input("Enter a setpoint:"))   # input for setpoint for run
     
     PID = ClosedLoop_PID(kp,ki,kd,sp,10/1000)
     encoder.zero()
+    start = utime.ticks_ms()
     while True:
-        pwm = PID.run(encoder.read())      # set return from controller as pwm for motor
-        motor.set_duty_cycle(pwm)         # set new pwm
-        utime.sleep_ms(10)
-        print(encoder.read())
-        if encoder.read() == 144:
-            motor.set_duty_cycle(0)
+        try:
+            utime.sleep_ms(10)
+            pwm = PID.run(encoder.read())      # set return from controller as pwm for motor
+            motor.set_duty_cycle(pwm)         # set new pwm
+            print(utime.ticks_ms() - start,encoder.read())
+            #if encoder.read() == 144:
+                #break
+        except KeyboardInterrupt:
             break
+    motor.set_duty_cycle(0)
+    print(encoder.read())
     
 
     
