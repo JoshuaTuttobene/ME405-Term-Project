@@ -42,8 +42,6 @@ def task1_image(shares):
     # the task yielding repeatedly until an image is available
     while time.ticks_ms() - runtime < 5000:
         yield
-    global from_5
-    from_5 = time.ticks_ms()
     image = None
     while not image:
         image = camera.get_image_nonblocking()
@@ -51,7 +49,7 @@ def task1_image(shares):
     gc.collect()
     
     # Iterate over the camera data
-    centroid = camera.run(44,image)
+    centroid = camera.run(50,image)
     print('centroid:',centroid,'angle:',((centroid-16)/32)*55)
     del camera, image
 
@@ -185,10 +183,10 @@ def task3_servo(shares):
     print('task3')
     print(fire_at_will)
     while True:
-        if fire_at_will.get() == 1:
-            servo.set_angle(35) # 30 is good for new servo extension
-            print('from 5',time.ticks_ms()-from_5)
-            time.sleep_ms(150)
+        if fire_at_will.get():
+            servo.set_angle(40) # 30 is good for new servo extension
+
+            time.sleep_ms(200)
             reset.put(1)
             break
         yield
@@ -204,7 +202,6 @@ def task4_reset(shares):
     while True:
         if reset.get():
             print("first", reset)
-            print('total runtime:',time.ticks_ms()-runtime)
 
 
 #             while True:
