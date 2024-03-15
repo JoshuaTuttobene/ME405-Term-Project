@@ -49,8 +49,8 @@ def task1_image(shares):
     gc.collect()
     
     # Iterate over the camera data
-    centroid = camera.run(50,image)
-    #print('centroid:',centroid,'angle:',((centroid-16)/32)*55)
+    centroid = camera.run(40,image)
+    print('centroid:',centroid,'angle:',((centroid-16)/32)*55)
     del camera, image
 
     # Get an image and see how long it takes to grab that image
@@ -75,7 +75,7 @@ def task1_image(shares):
     cal_offset = 0 # 2.5 to 3 off of center based on aiming for center
     desired = (144 + (beta/((1.25*pi)/180)))
     
-    #print('this is old', desired, (desired*1.25)-180)
+    print('this is old', desired, (desired*1.25)-180)
     desired += cal_offset
     
     if desired - (desired//1) < 0.5:
@@ -184,7 +184,7 @@ def task3_servo(shares):
     #print(fire_at_will)
     while True:
         if fire_at_will.get():
-            servo.set_angle(40) # 30 is good for new servo extension
+            servo.set_angle(30) # 30 is good for new servo extension
 
             time.sleep_ms(200)
             reset.put(1)
