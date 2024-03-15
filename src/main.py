@@ -40,7 +40,7 @@ def task1_image(shares):
 
     # Keep trying to get an image; this could be done in a task, with
     # the task yielding repeatedly until an image is available
-    while time.ticks_ms() - runtime < 5000:
+    while time.ticks_ms() - runtime < 4500:
         yield
     image = None
     while not image:
@@ -50,11 +50,11 @@ def task1_image(shares):
     
     # Iterate over the camera data
     centroid = camera.run(50,image)
-    print('centroid:',centroid,'angle:',((centroid-16)/32)*55)
+    #print('centroid:',centroid,'angle:',((centroid-16)/32)*55)
     del camera, image
 
     # Get an image and see how long it takes to grab that image
-    print("Click.", end='')
+    #print("Click.", end='')
     gc.collect()
     
     # ----[Camera Angle Calculation for Motor Control]----
@@ -75,7 +75,7 @@ def task1_image(shares):
     cal_offset = 0 # 2.5 to 3 off of center based on aiming for center
     desired = (144 + (beta/((1.25*pi)/180)))
     
-    print('this is old', desired, (desired*1.25)-180)
+    #print('this is old', desired, (desired*1.25)-180)
     desired += cal_offset
     
     if desired - (desired//1) < 0.5:
@@ -122,18 +122,18 @@ def task2_motor(shares):
     
     print('task2')
     if not image_ready.get():
-        print('start 144')
+        #print('start 144')
         start_time = time.ticks_ms()
         while True:
             pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)      # set return from controller as pwm for motor
             motor.set_duty_cycle(pwm)          # set new pwm
-            print(pwm,encoder.read())
+            #print(pwm,encoder.read())
             if encoder.read() == desired_pos or image_ready.get():
                 motor.set_duty_cycle(0)
                 break
             yield
     while True:
-        print('start hold')
+        #print('start hold')
         if image_ready.get():
             break
         yield
@@ -148,14 +148,14 @@ def task2_motor(shares):
     while True:
         pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)      # set return from controller as pwm for motor
         motor.set_duty_cycle(pwm)
-        print(encoder.read(),',',desired,',',pwm)
+        #print(encoder.read(),',',desired,',',pwm)
         if encoder.read() == desired:
             motor.set_duty_cycle(0)
             fire_at_will.put(1)
             motor.disable()
             break
         yield
-    print(desired,(desired*1.25)-180)
+    #print(desired,(desired*1.25)-180)
 
     while True:
 
@@ -181,7 +181,7 @@ def task3_servo(shares):
     # Shoot 'em state
     fire_at_will, reset = shares
     print('task3')
-    print(fire_at_will)
+    #print(fire_at_will)
     while True:
         if fire_at_will.get():
             servo.set_angle(40) # 30 is good for new servo extension
@@ -201,23 +201,12 @@ def task4_reset(shares):
     print('task4')
     while True:
         if reset.get():
-            print("first", reset)
-
-
-#             while True:
-#                 pwm = PID.run(encoder.read())      # set return from controller as pwm for motor
-#                 motor.set_duty_cycle(pwm)          # set new pwm
-#                 time.sleep_ms(10)
-#                 if encoder.read() == 0:
-#                     motor.set_duty_cycle(0)
-#                     print('done')
-#                     break
-#             motor.disable()
+            #print("first", reset)
     
-            print('test')
-            print ("Done.")
+            #print('test')
+            print ("reset.")
             reset.put(0)
-            print("second", reset)
+            #print("second", reset)
             fire_at_will.put(0)
             desired_pos.put(0)
             image_ready.put(0)
@@ -226,7 +215,7 @@ def task4_reset(shares):
         yield
 
 # -------------------------[TEST CODE]------------------------------
-print('main')
+#print('main')
 pos_queue = cqueue.IntQueue(1)
 # Create a share and a queue to test function and diagnostic printouts
 desired_pos = task_share.Share('h', thread_protect=False, name="Desired Position")
