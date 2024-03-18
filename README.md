@@ -70,6 +70,6 @@ We also should have tested our turret on the other side of the tournament table.
 This was likely a contributing factor to our defeat in deathmatch. If we had more time, we could've programmed a more robust setpoint algorithm to locate a human target rather than finding the centroid of all heat in the frame.
 
 If we accomplished all these improvements (resulting in a super-accurate and super-fast turret/tracking system), we could've also attempted to shoot the target within the 5 second time period in which they were not stationary. 
-The speed of our Nerf dart would then be the only limiting factor then on how likely the opponent is to be able to dodge the shot.
+The speed and accuracy of our Nerf dart would then be the only limiting factor on how likely the opponent is to be able to dodge the shot. We could always upgrade the Nerf gun to a better model if desired.
 
 Overall, however, we are quite pleased with our performance and happy that we learned a lot about how to better design and optimize mechatronic systems.
