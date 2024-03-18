@@ -35,12 +35,12 @@ In depth documentation can be found here: INSERT DOXYGEN MAIN PAGE LINK
 
 RESULTS
 
-Our resultant turret performed surprisingly well for a project designed, built, programmed, and tuned in just a few weeks. 
-Our team tied for first in our section's tournament, but lost in sudden death.
+Our resultant turret performed surprisingly well for a project designed, built, programmed, and tuned in just a few weeks, especially considering that we were balancing other schoolwork, labs, and projects at the same time.
+Our team tied for first (out of 6 teams) in our section's tournament, but lost in sudden death.
 
 We tested our system thoroughly by simulating competition conditions as we became able to. 
 
-First, we tried rotating the gun 180 degrees. Then, we added PD control. We tried PID control, but that ended up being highly unstable.
+First, we tried rotating the gun 180 degrees. Then, we added PD control. We tried PID control, but that ended up being highly unstable and the PD control worked just fine, so we scrapped the integral.
 Once we could aim at a setpoint, we worked on the thermal camera's image processing to obtain the desired setpoint. 
 Then, we tested the trigger mechanism. Once we had the mechanics of it figured out, it was simple to program.
 
@@ -56,12 +56,20 @@ Each encoder tick corresponded to 1.25 degrees giving our accuracy an inherent +
 
 POSSIBLE IMPROVEMENTS
 
-In retrospect, we should've designed a more robust mechanical system. Using a stepper motor would have nearly eliminated our backlash problem. 
+In retrospect, we could've designed a more robust mechanical system. Using a stepper motor would have nearly eliminated our backlash problem. 
 A motor with a high enough step count would also result in a better aiming resolution than our encoder could do.
 We could also have used a larger gear ratio in order to get more precise aiming. This would sacrifice some of our speed though.
 Better tensioning on our timing belt or using precisely meshing gears would also have helped our turret be more consistent.
+We also slightly misjudged the angle on our gun mount, which made it aim for headshots. Fortunately, we were able to shim some scrap metal underneath our mount to make it aim at chest-level for the competition since the chest is easier to hit.
 
 Our software was also not blameless. Our image processing took much longer than we expected. Even after optimizing it the best we could and running the microcontroller at its maximum frequency, it still took around 3 seconds to take an image and spit out a setpoint. 
-On top of that, simply creating an instance (object) of the camera class took over a second. Since our mechanical system could turn 180 degrees in a quarter of a second, the camera ended up being the slowest component by far.
+On top of that, simply creating an instance (object) of the camera class took over a second. Since our mechanical system could turn 180 degrees in a quarter of a second, the camera ended up being the slowest component by far. 
+This was a combination of the camera's hardware limitations and an unknown problem in our software that made image processing much slower than some other teams were able to achieve.
+
+We also should have tested our turret on the other side of the tournament table. In the finals, we ended up on the other side of the table and our thermal camera was thrown off by the bright windows in its field of view.
+This was likely a contributing factor to our defeat in deathmatch. If we had more time, we could've programmed a more robust setpoint algorithm to locate a human target rather than finding the centroid of all heat in the frame.
+
+If we accomplished all these improvements (resulting in a super-accurate and super-fast turret/tracking system), we could've also attempted to shoot the target within the 5 second time period in which they were not stationary. 
+The speed of our Nerf dart would then be the only limiting factor then on how likely the opponent is to be able to dodge the shot.
 
 Overall, however, we are quite pleased with our performance and happy that we learned a lot about how to better design and optimize mechatronic systems.
