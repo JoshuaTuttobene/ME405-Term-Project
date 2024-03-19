@@ -47,7 +47,7 @@ def task1_image(shares):
 
     # Keep trying to get an image; this could be done in a task, with
     # the task yielding repeatedly until an image is available
-    while time.ticks_ms() - runtime < 4500:
+    while time.ticks_ms() - runtime < 5000:
         yield
     image = None
     while not image:
@@ -118,9 +118,8 @@ def task2_motor(shares):
     
     print('task2')
     if not image_ready.get():
-        start_time = time.ticks_ms()
         while True:
-            pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)  # set return from controller as pwm for motor
+            pwm = pid.run(encoder.read())  # set return from controller as pwm for motor
             motor.set_duty_cycle(pwm)                                 # set new pwm
             if encoder.read() == desired_pos or image_ready.get():
                 motor.set_duty_cycle(0)
@@ -137,9 +136,8 @@ def task2_motor(shares):
         
     # Target 'em state
     print('aim start')
-    start_time = time.ticks_ms()
     while True:
-        pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)      # set return from controller as pwm for motor
+        pwm = pid.run(encoder.read())      # set return from controller as pwm for motor
         motor.set_duty_cycle(pwm)
         if encoder.read() == desired:
             motor.set_duty_cycle(0)

@@ -91,14 +91,25 @@ class MotorDriver:
         else:
             print("type an integer from -100 to 100")
         #print (f"Setting duty cycle to {level}")
+        return
             
     def enable(self):
+        """!
+        This method enables the motor. No parameters required.
+        Sets the enable pin high.
+        """
         # To enable the motor
         self.en_pin.high()
+        return
         
     def disable(self):
+        """!
+        This method disables the motor. No parameters required.
+        Sets the enable pin low.
+        """
         # to disable the motor
         self.en_pin.low()
+        return
 
 if __name__ == '__main__':
     enable_pin = pyb.Pin(pyb.Pin.board.PA10, pyb.Pin.OUT_PP)
