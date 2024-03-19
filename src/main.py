@@ -1,8 +1,20 @@
+"""!
+@file main.py
 
-# Imports for cotasks
+This file contains code to run all the necessary tasks to enable the Nerf gun
+such that it is able to read an image, turn to the specified target, and pull the
+trigger at the specified time.
+This includes previously written code, including the motor driver class, the
+encoder reader class, PID controller class, servo driver class, and the provided
+mlx cam folder and classes.
+
+@author Aaron Escamilla, Karen Morales De Leon, Joshua Tuttobene
+@date   03/19/2024 Original program
+@copyright (c) 2023 by Spluttflob and released under the GNU Public Licenes V3
+"""
+
 import cotask
 import task_share
-
 import utime as time
 runtime = time.ticks_ms()
 from machine import Pin, I2C
@@ -16,21 +28,16 @@ import Servo_Driver as SD
 import gc
 import cqueue
 
-
-
 def task1_image(shares):
     """!
-    Task 1 puts things into a share. Task 1 is for the first motor we use.
-    It uses the motor class, encoder class,
-    and the closed loop proportional controller class
+    Task 1 puts things into a share, specifically the desired position,
+    a flag to mark whether the image is ready to be processed, and a camera share for data.
+    Task 1 is in charge of utilizing the camera by reading the image, processing it into usable data
+    and calculating the heat centroid. The task uses everything in the mlx90640 folder.
     @param shares A list holding the share and queue used by this task
     """
     print('task1_init')
     # ----[Camera Init]----
-    # Create the camera object and set it up in default mode
-
-
-    # MLX90640 camera I2C address at 0x33, and check the bus
     begintime = time.ticks_ms()
     gc.collect()
     
@@ -54,25 +61,13 @@ def task1_image(shares):
     del camera, image
 
     # Get an image and see how long it takes to grab that image
-    #print("Click.", end='')
     gc.collect()
     
     # ----[Camera Angle Calculation for Motor Control]----
-    
-    # Location Code for Center of Table
-    # cam_angle = ((max_index-16)/32)*((55*pi)/180)
-    # x = 6*tan(cam_angle)
-    # beta = atan(x/((108+89.5)/12))
-    # cal_offset = 8
-    # desired_pos = (144 + (beta/((1.25*pi)/180)))
-    # print('this is old', desired_pos, (desired_pos*1.25)-180)
-    # desired_pos += cal_offset
-    
-    # Location Code from Edge
     cam_angle = ((centroid-16)/32)*((55*pi)/180)
     x = 108*tan(cam_angle) + 12.1
     beta = atan(x/197.5)
-    cal_offset = 0 # 2.5 to 3 off of center based on aiming for center
+    cal_offset = 0  # 2.5 to 3 off of center based on aiming for center
     desired = (144 + (beta/((1.25*pi)/180)))
     
     print('this is old', desired, (desired*1.25)-180)
@@ -91,9 +86,10 @@ def task1_image(shares):
 
 def task2_motor(shares):
     """!
-    Task 2 puts things into a share. Task 2 is for the motor to 
-    activate the trigger.
-    It uses the servo class
+    Task 2 puts things into a share. Task 2 is for the motor initialization and it makes use of the
+    motor driver class, PID class, and encoder class.
+    It takes information from task 1 to determine
+    where the motor should move via shares (desired position, and image_ready flag)
     @param shares A list holding the share and queue used by this task
     """
     print('task2_init')
@@ -122,18 +118,15 @@ def task2_motor(shares):
     
     print('task2')
     if not image_ready.get():
-        #print('start 144')
         start_time = time.ticks_ms()
         while True:
-            pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)      # set return from controller as pwm for motor
-            motor.set_duty_cycle(pwm)          # set new pwm
-            #print(pwm,encoder.read())
+            pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)  # set return from controller as pwm for motor
+            motor.set_duty_cycle(pwm)                                 # set new pwm
             if encoder.read() == desired_pos or image_ready.get():
                 motor.set_duty_cycle(0)
                 break
             yield
     while True:
-        #print('start hold')
         if image_ready.get():
             break
         yield
@@ -148,20 +141,24 @@ def task2_motor(shares):
     while True:
         pwm = pid.run(encoder.read(),time.ticks_ms()-start_time)      # set return from controller as pwm for motor
         motor.set_duty_cycle(pwm)
-        #print(encoder.read(),',',desired,',',pwm)
         if encoder.read() == desired:
             motor.set_duty_cycle(0)
             fire_at_will.put(1)
             motor.disable()
             break
         yield
-    #print(desired,(desired*1.25)-180)
 
     while True:
-
         yield
 
 def task3_servo(shares):
+    """!
+    Task 3 puts things into a share. Task 3 is for the encoder initialization and it makes use of the
+    servo driver class. It is used to pull the trigger in the Nerf gun.
+    It takes information from task 2 to determine whether the gun is in position to pull the trigger
+    through a flag (fire_at_will). In addition, it sets the flag to reset everything in the next task.
+    @param shares A list holding the share and queue used by this task
+    """
     print('task3_init')
     # ----[Servo Init]----
     servo_pin = pyb.Pin.cpu.B6
@@ -181,11 +178,9 @@ def task3_servo(shares):
     # Shoot 'em state
     fire_at_will, reset = shares
     print('task3')
-    #print(fire_at_will)
     while True:
         if fire_at_will.get():
-            servo.set_angle(30) # 30 is good for new servo extension
-
+            servo.set_angle(30)     # 30 is good for new servo extension
             time.sleep_ms(200)
             reset.put(1)
             break
@@ -196,17 +191,19 @@ def task3_servo(shares):
     
     
 def task4_reset(shares):
-    reset, fire_at_will, desired_pos = shares
+    """!
+    Task 4 puts things into a share. Task 4 resets everything to its original  state such that the program
+    is ready to run again. It takes information from task 3 with the reset flag and resets all the other
+    variables from shares.
+    @param shares A list holding the share and queue used by this task
+    """
     # Do it to 'em again state
+    reset, fire_at_will, desired_pos = shares
     print('task4')
     while True:
         if reset.get():
-            #print("first", reset)
-    
-            #print('test')
             print ("reset.")
             reset.put(0)
-            #print("second", reset)
             fire_at_will.put(0)
             desired_pos.put(0)
             image_ready.put(0)
@@ -214,8 +211,7 @@ def task4_reset(shares):
     while True:
         yield
 
-# -------------------------[TEST CODE]------------------------------
-#print('main')
+# -------------------------[MAIN: RUNNING THE CODE]------------------------------
 pos_queue = cqueue.IntQueue(1)
 # Create a share and a queue to test function and diagnostic printouts
 desired_pos = task_share.Share('h', thread_protect=False, name="Desired Position")
@@ -223,6 +219,7 @@ fire_at_will = task_share.Share('h', thread_protect=False, name="Fire Them")
 reset = task_share.Share('h', thread_protect=False, name="Reset")
 image_ready = task_share.Share('h', thread_protect=False, name="Image Ready")
 
+# Initialize the camera
 i2c_bus = I2C(1,freq = 1000000)
 i2c_address = 0x33
 scanhex = [f"0x{addr:X}" for addr in i2c_bus.scan()]
@@ -230,8 +227,7 @@ print(f"I2C Scan: {scanhex}")
 gc.collect()
 camera = MLX.MLX_Cam(i2c_bus)
 
-
-# Create the tasks. If trace is enabled for any task, memory will be
+# Create the tasks
 task1 = cotask.Task(task1_image, name="Task_1", priority=3, period=110,
                 profile=True, trace=False, shares=(desired_pos, image_ready,camera))
 task2 = cotask.Task(task2_motor, name="Task_2", priority=4, period=15,
@@ -245,7 +241,7 @@ cotask.task_list.append(task2)
 cotask.task_list.append(task3)
 cotask.task_list.append(task4)
 
-# Run the memory garbage collector to ensure memory is as defragmented as
+# Run the memory garbage collector to ensure memory is defragmented
 gc.collect()
 
 while True:
