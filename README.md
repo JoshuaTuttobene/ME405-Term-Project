@@ -36,7 +36,7 @@ SOFTWARE
 
 The program calculates a thermal centroid from a processed image, aims the gun at that centroid with a PD controller, and then pulls the trigger once locked onto the target.
 
-In depth documentation can be found here: INSERT DOXYGEN MAIN PAGE LINK
+In depth documentation can be found here: https://joshuatuttobene.github.io/ME405-Term-Project/
 
 Task Diagram:
 
