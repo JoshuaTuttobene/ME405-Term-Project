@@ -22,9 +22,14 @@ CAD Model:
 
 ![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/c1119716-5263-4318-9854-b6561a143145)
 
-Hardware Picture (REPLACE WITH HIGHER QUALITY IMAGE):
+Hardware Picture:
 
-![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/130b673a-414e-4084-8b53-82ca18a79b9a)
+![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/dd470a79-701d-41e5-9cae-7b37eccfa437)
+
+Circuit Diagram:
+
+![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/02fcccbe-8262-48c4-854e-00795db5db9c)
+
 
 
 SOFTWARE
@@ -32,6 +37,14 @@ SOFTWARE
 The program calculates a thermal centroid from a processed image, aims the gun at that centroid with a PD controller, and then pulls the trigger once locked onto the target.
 
 In depth documentation can be found here: INSERT DOXYGEN MAIN PAGE LINK
+
+Task Diagram:
+
+![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/385fb0bc-023f-4a9d-9e61-1c0eb9aec867)
+
+Finite State Machine:
+
+![image](https://github.com/JoshuaTuttobene/ME405-Term-Project/assets/107731390/8ee23383-57e8-4b4d-80e2-7741f3c7965a)
 
 RESULTS
 
